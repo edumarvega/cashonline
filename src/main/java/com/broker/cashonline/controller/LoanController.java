@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.broker.cashonline.entity.Loan;
+import com.broker.cashonline.exception.ResourceNotFoundException;
 import com.broker.cashonline.repository.LoanRepository;
 
 import org.slf4j.Logger;
@@ -37,7 +38,7 @@ public class LoanController {
 	public ResponseEntity<Map<String, Object>> getAllLoansPage(@RequestParam(required = false) String user_id,
 			@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
 
-		try {
+
 			logger.debug("inside LoanController.getAllLoansPage() method");
 			List<Loan> loans = new ArrayList<Loan>();
 			Pageable pagingSort = this.getPagingSort(page, size);
@@ -51,7 +52,8 @@ public class LoanController {
 			loans = pageLoans.getContent();
 
 			if (loans.isEmpty()) {
-				return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+				logger.warn("No se encntraron resultados.");
+				throw new ResourceNotFoundException("No se encntraron resultados.");
 			}
 
 			Map<String, Object> response = new HashMap<>();
@@ -59,10 +61,7 @@ public class LoanController {
 			response.put("paging", new com.broker.cashonline.pagination.Page(pageLoans.getNumber(), pageLoans.getTotalPages(), pageLoans.getTotalElements()));
 
 			return new ResponseEntity<>(response, HttpStatus.OK);
-		} catch (Exception e) {
-			logger.error("Error al mostrar los resultados.", e);
-			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
-		}
+		
 	}
 	
 	private Pageable getPagingSort(int page, int size) {
