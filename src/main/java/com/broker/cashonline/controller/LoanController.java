@@ -21,9 +21,14 @@ import org.springframework.web.bind.annotation.RestController;
 import com.broker.cashonline.entity.Loan;
 import com.broker.cashonline.repository.LoanRepository;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @RestController
 @RequestMapping("/api")
 public class LoanController {
+	
+	private static Logger logger = LoggerFactory.getLogger(LoanController.class);
 
 	@Autowired
 	private LoanRepository loanRepository;
@@ -33,6 +38,7 @@ public class LoanController {
 			@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
 
 		try {
+			logger.debug("inside LoanController.getAllLoansPage() method");
 			List<Loan> loans = new ArrayList<Loan>();
 			Pageable pagingSort = this.getPagingSort(page, size);
 			Page<Loan> pageLoans;
@@ -50,13 +56,11 @@ public class LoanController {
 
 			Map<String, Object> response = new HashMap<>();
 			response.put("items", loans);
-			response.put("page", pageLoans.getNumber());
-			response.put("total", pageLoans.getTotalElements());
-			response.put("totalPages", pageLoans.getTotalPages());
 			response.put("paging", new com.broker.cashonline.pagination.Page(pageLoans.getNumber(), pageLoans.getTotalPages(), pageLoans.getTotalElements()));
 
 			return new ResponseEntity<>(response, HttpStatus.OK);
 		} catch (Exception e) {
+			logger.error("Error al mostrar los resultados.", e);
 			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
@@ -75,13 +79,13 @@ public class LoanController {
 	}
 	
 	private Sort.Direction getSortDirection(String direction) {
-	    if (direction.equals("asc")) {
-	      return Sort.Direction.ASC;
-	    } else if (direction.equals("desc")) {
-	      return Sort.Direction.DESC;
-	    }
+		if (direction.equals("asc")) {
+			return Sort.Direction.ASC;
+		} else if (direction.equals("desc")) {
+			return Sort.Direction.DESC;
+		}
 
-	    return Sort.Direction.ASC;
-	  }
+		return Sort.Direction.ASC;
+	}
 
 }
